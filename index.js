@@ -87,6 +87,8 @@ client.on('message', message => {
                         message.channel.send(cilplink[0]);
                         }
                     }
+                    await page.close();
+                    await browser.close();
                 } catch (e){
                     console.log(e);
                 }

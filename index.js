@@ -3,14 +3,9 @@ require('dotenv').config();
 const puppeteer = require('puppeteer');
 const cron = require('node-cron');
 const Sentry = require("@sentry/node");
-const Tracing = require("@sentry/tracing");
 
 Sentry.init({
     dsn: "https://98d0b718d98b4f08b74bb62894d03eb0@o1152022.ingest.sentry.io/6229755",
-  
-    // Set tracesSampleRate to 1.0 to capture 100%
-    // of transactions for performance monitoring.
-    // We recommend adjusting this value in production
     tracesSampleRate: 1.0,
   });
   
@@ -41,7 +36,7 @@ client.on('message', message => {
                 try{
                     const browser = await puppeteer.launch({
                         headless: true,
-                        args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process']
+                        args: ['--no-sandbox', '--disable-setuid-sandbox']
                     });
 
                     const page = await browser.newPage();
@@ -103,10 +98,9 @@ client.on('message', message => {
                     }
                     await page.close();
                     await browser.close();
-                    client.isReady();
                 } catch (e){
                     Sentry.captureException(e);
-                }finally {
+                 }finally {
                     transaction.finish();
                 }
             })();

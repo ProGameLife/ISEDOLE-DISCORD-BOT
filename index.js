@@ -91,8 +91,9 @@ client.on('ready', async () => {
             await page.close();
             await browser.close();
         } catch (e){
+            console.log(e);
             Sentry.captureException(e);
-            }finally {
+        } finally {
             transaction.finish();
         }
     });

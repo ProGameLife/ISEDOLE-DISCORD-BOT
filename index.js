@@ -3,6 +3,7 @@ require('dotenv').config();
 const puppeteer = require('puppeteer');
 const cron = require('node-cron');
 const Sentry = require("@sentry/node");
+const { not } = require('cheerio/lib/api/traversing');
 
 Sentry.init({
     dsn: "https://98d0b718d98b4f08b74bb62894d03eb0@o1152022.ingest.sentry.io/6229755",
@@ -53,6 +54,7 @@ client.on('ready', async () => {
             await frame.click('#main-area > div:nth-child(6) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article');
             const hotclipHandle = await page.waitForSelector('#cafe_main');
             const clipframe = await hotclipHandle.contentFrame();
+            if(!clipframe) return false;
             await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div', {timeout : 50000});
             const link = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_container > div.article_viewer > div > div.content.CafeViewer > div > div > div > div > div > div > p > span > a');
             const title = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div > .title_text');

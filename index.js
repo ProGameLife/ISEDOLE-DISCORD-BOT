@@ -33,8 +33,8 @@ client.on('ready', async () => {
                 headless: true,
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
+            if(!browser) return false;
             page = await browser.newPage();
-        
 
             await page.goto('https://cafe.naver.com/steamindiegame');
             await page.click("#menuLink331");
@@ -55,7 +55,8 @@ client.on('ready', async () => {
             const hotclipHandle = await page.waitForSelector('#cafe_main');
             const clipframe = await hotclipHandle.contentFrame();
             if(!clipframe) return false;
-            await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div', {timeout : 50000});
+            if(!await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div', {timeout : 50000})) return false;
+            
             const link = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_container > div.article_viewer > div > div.content.CafeViewer > div > div > div > div > div > div > p > span > a');
             const title = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div > .title_text');
 
@@ -109,7 +110,3 @@ client.on('ready', async () => {
 });
 
 client.login(process.env.BOT_TOKEN);
-
-//[Symbol(kError)]: Error: socket hang up NODE JS
-
-

@@ -14,9 +14,6 @@ Sentry.init({
     op: "test",
     name: "My First Test Transaction",
   });
-  
-
-
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_SCHEDULED_EVENTS, Intents.FLAGS.GUILD_MESSAGE_TYPING] }); // intents를 해줘야지 type오류가 안난다 discord.js client에서 오류남;;
 
 client.on('ready', async () => {
@@ -24,8 +21,9 @@ client.on('ready', async () => {
 
     let linkchek;
     const channel = await client.channels.fetch(process.env.CHANNEL_ID);
-    
-    cron.schedule('*/1 * * * *', async () => {
+
+    cron.schedule('*/50 * * * * *', async () => {
+        console.log('start');
         let browser;
         let page;
         try{
@@ -54,12 +52,13 @@ client.on('ready', async () => {
             await frame.click('#main-area > div:nth-child(6) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article');
             const hotclipHandle = await page.waitForSelector('#cafe_main');
             const clipframe = await hotclipHandle.contentFrame();
+            await clipframe.waitForTimeout(2000);
             if(!clipframe) return false;
-            if(!await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div', {timeout : 50000})) return false;
-            
+            if(!await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div')) return false;
+           
             const link = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_container > div.article_viewer > div > div.content.CafeViewer > div > div > div > div > div > div > p > span > a');
             const title = await clipframe.$$('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div > .title_text');
-
+            
             const titlename = await Promise.all(title.map((element) => {
                 return element.evaluate((domElement) => {
                     return domElement.textContent;
@@ -98,12 +97,8 @@ client.on('ready', async () => {
             console.log(e);
             Sentry.captureException(e);
         } finally {
-            if(page){
-                await page.close();
-            }
-            if(browser){
-                await browser.close();
-            }
+            if(page)  await page.close();
+            if(browser) await browser.close();
             transaction.finish();
         }
     });

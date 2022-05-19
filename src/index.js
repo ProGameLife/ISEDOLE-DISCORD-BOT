@@ -1,9 +1,8 @@
-const { Client, Intents, MessageEmbed, Message, MessageAttachment } = require('discord.js');
+const { Client, Intents, MessageEmbed } = require('discord.js');
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 const cron = require('node-cron');
 const Sentry = require("@sentry/node");
-const { not } = require('cheerio/lib/api/traversing');
 
 Sentry.init({
     dsn: "https://98d0b718d98b4f08b74bb62894d03eb0@o1152022.ingest.sentry.io/6229755",
@@ -14,7 +13,14 @@ Sentry.init({
     op: "test",
     name: "My First Test Transaction",
   });
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_SCHEDULED_EVENTS, Intents.FLAGS.GUILD_MESSAGE_TYPING] }); // intents를 해줘야지 type오류가 안난다 discord.js client에서 오류남;;
+
+const client = new Client({ 
+    intents: [
+        Intents.FLAGS.GUILDS, 
+        Intents.FLAGS.GUILD_MESSAGES, 
+        Intents.FLAGS.GUILD_MESSAGE_TYPING, 
+        Intents.FLAGS.GUILD_SCHEDULED_EVENTS, 
+    ]}); // intents를 해줘야지 type오류가 안난다 discord.js client에서 오류남;;
 
 client.on('ready', async () => {
     console.log('이세돌 봇 on'); 
@@ -23,16 +29,16 @@ client.on('ready', async () => {
     const channel = await client.channels.fetch(process.env.CHANNEL_ID);
 
     cron.schedule('*/50 * * * * *', async () => {
-        console.log('start');
         let browser;
         let page;
         try{
             browser = await puppeteer.launch({
-                headless: false,
+                headless: true,
                 width: 1920,
                 height: 1080,
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
+
             if(!browser) return false;
             page = await browser.newPage();
 
@@ -43,7 +49,7 @@ client.on('ready', async () => {
             const elementHandle = await page.waitForSelector('#cafe_main');
             const frame = await elementHandle.contentFrame();
             
-            await frame.waitForSelector('#main-area > div:nth-child(4) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article');
+            await frame.waitForSelector('#main-area > div:nth-child(4) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article'); //펜카페 페이지 게시판
             const url = await frame.$$('#main-area > div:nth-child(4) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article');
             console.log(url);
             const geturl = await Promise.all(url.map((element) => {
@@ -52,11 +58,11 @@ client.on('ready', async () => {
                 })
             }));
 
-
             await frame.click('#main-area > div:nth-child(4) > table > tbody > tr:nth-child(1) > td.td_article > div.board-list > div > a.article');
             const hotclipHandle = await page.waitForSelector('#cafe_main');
             const clipframe = await hotclipHandle.contentFrame();
             await clipframe.waitForTimeout(2000);
+            
             if(!clipframe) return false;
             if(!await clipframe.waitForSelector('#app > div > div > div.ArticleContentBox > div.article_header > div.ArticleTitle > div')) return false;
             
